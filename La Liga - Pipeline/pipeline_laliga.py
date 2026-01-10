@@ -458,3 +458,67 @@ fato_partidas_bin = fato_partidas.withColumn(
 correlacao = fato_partidas_bin.corr("poss", "win")
 
 print(f"Coeficiente de correlação (poss x vitória): {correlacao:.4f}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Na célula acima realizamos duas operações principais:
+# MAGIC * 1. Cria uma nova coluna binária chamada "win" na tabela fato_partidas, onde o valor é 1 se o resultado da partida foi "WIN" (vitória) e 0 caso contrário.
+# MAGIC
+# MAGIC * 2. Calcula o coeficiente de correlação de Pearson entre a posse de bola ("poss") e a variável binária de vitória ("win").
+# MAGIC
+# MAGIC O resultado obtido é o valor do coeficiente de correlação de Pearson, que varia de -1 a 1. Um valor próximo de 1 indica forte associação positiva: partidas com maior posse de bola tendem a resultar em vitória. Um valor próximo de 0 indica ausência de correlação linear significativa entre posse de bola e vitória, ou seja, ter mais posse não garante o resultado. Se o valor for negativo, sugere que maior posse de bola está associada a menos vitórias, o que seria contraintuitivo. Portanto, o coeficiente calculado permite validar ou refutar a hipótese de que maior posse de bola está relacionada à vitória nas partidas analisadas.
+# MAGIC
+# MAGIC Por essa razão, podemos observar que a posse de bola, não neessáriamente leva um time à vitória.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##5.2 A posse de bola se traduz em Chutes a gol e por consequência gols?
+
+# COMMAND ----------
+
+from pyspark.mllib.stat import Statistics
+
+# Seleciona as colunas relevantes e remove nulos
+df_test = fato_partidas.select("poss", "sh", "gf").dropna()
+
+# Converte para RDDs de pares para testes de correlação
+poss_sh_rdd = df_test.select("poss", "sh").rdd.map(lambda row: (row[0], row[1]))
+poss_gf_rdd = df_test.select("poss", "gf").rdd.map(lambda row: (row[0], row[1]))
+sh_gf_rdd = df_test.select("sh", "gf").rdd.map(lambda row: (row[0], row[1]))
+
+# Calcula correlação de Pearson
+corr_poss_sh = Statistics.corr(poss_sh_rdd.map(lambda x: x[0]), poss_sh_rdd.map(lambda x: x[1]), method="pearson")
+corr_poss_gf = Statistics.corr(poss_gf_rdd.map(lambda x: x[0]), poss_gf_rdd.map(lambda x: x[1]), method="pearson")
+corr_sh_gf = Statistics.corr(sh_gf_rdd.map(lambda x: x[0]), sh_gf_rdd.map(lambda x: x[1]), method="pearson")
+
+print(f"Correlação posse x chutes: {corr_poss_sh:.4f}")
+print(f"Correlação posse x gols: {corr_poss_gf:.4f}")
+print(f"Correlação chutes x gols: {corr_sh_gf:.4f}")
+
+# Teste de independência (qui-quadrado) entre posse e chutes
+from pyspark.sql.functions import col
+from pyspark.mllib.linalg import Vectors
+
+# Discretiza posse e chutes para teste qui-quadrado
+df_chi = df_test.withColumn("poss_bin", (col("poss")/10).cast("int")).withColumn("sh_bin", (col("sh")/2).cast("int"))
+obs = df_chi.groupBy("poss_bin", "sh_bin").count().orderBy("poss_bin", "sh_bin").select("count").rdd.map(lambda r: r[0]).collect()
+# Cria matriz de contingência
+import numpy as np
+poss_bins = df_chi.select("poss_bin").distinct().count()
+sh_bins = df_chi.select("sh_bin").distinct().count()
+matrix = np.array(obs).reshape(poss_bins, sh_bins)
+chi_result = Statistics.chiSqTest(Vectors.dense(matrix.flatten()))
+
+print(f"Teste qui-quadrado posse x chutes: p-valor={chi_result.pValue:.4f}, estatística={chi_result.statistic:.2f}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
