@@ -478,40 +478,121 @@ print(f"Coeficiente de correlação (poss x vitória): {correlacao:.4f}")
 
 # COMMAND ----------
 
-from pyspark.mllib.stat import Statistics
+from pyspark.sql.functions import col
 
 # Seleciona as colunas relevantes e remove nulos
 df_test = fato_partidas.select("poss", "sh", "gf").dropna()
 
-# Converte para RDDs de pares para testes de correlação
-poss_sh_rdd = df_test.select("poss", "sh").rdd.map(lambda row: (row[0], row[1]))
-poss_gf_rdd = df_test.select("poss", "gf").rdd.map(lambda row: (row[0], row[1]))
-sh_gf_rdd = df_test.select("sh", "gf").rdd.map(lambda row: (row[0], row[1]))
-
-# Calcula correlação de Pearson
-corr_poss_sh = Statistics.corr(poss_sh_rdd.map(lambda x: x[0]), poss_sh_rdd.map(lambda x: x[1]), method="pearson")
-corr_poss_gf = Statistics.corr(poss_gf_rdd.map(lambda x: x[0]), poss_gf_rdd.map(lambda x: x[1]), method="pearson")
-corr_sh_gf = Statistics.corr(sh_gf_rdd.map(lambda x: x[0]), sh_gf_rdd.map(lambda x: x[1]), method="pearson")
+# Calcula correlação de Pearson usando Spark DataFrame corr
+corr_poss_sh = df_test.corr("poss", "sh")
+corr_poss_gf = df_test.corr("poss", "gf")
+corr_sh_gf = df_test.corr("sh", "gf")
 
 print(f"Correlação posse x chutes: {corr_poss_sh:.4f}")
 print(f"Correlação posse x gols: {corr_poss_gf:.4f}")
 print(f"Correlação chutes x gols: {corr_sh_gf:.4f}")
 
 # Teste de independência (qui-quadrado) entre posse e chutes
-from pyspark.sql.functions import col
-from pyspark.mllib.linalg import Vectors
-
-# Discretiza posse e chutes para teste qui-quadrado
 df_chi = df_test.withColumn("poss_bin", (col("poss")/10).cast("int")).withColumn("sh_bin", (col("sh")/2).cast("int"))
-obs = df_chi.groupBy("poss_bin", "sh_bin").count().orderBy("poss_bin", "sh_bin").select("count").rdd.map(lambda r: r[0]).collect()
-# Cria matriz de contingência
-import numpy as np
-poss_bins = df_chi.select("poss_bin").distinct().count()
-sh_bins = df_chi.select("sh_bin").distinct().count()
-matrix = np.array(obs).reshape(poss_bins, sh_bins)
-chi_result = Statistics.chiSqTest(Vectors.dense(matrix.flatten()))
+contingency = df_chi.groupBy("poss_bin", "sh_bin").count().toPandas()
+pivot = contingency.pivot(index="poss_bin", columns="sh_bin", values="count").fillna(0)
 
-print(f"Teste qui-quadrado posse x chutes: p-valor={chi_result.pValue:.4f}, estatística={chi_result.statistic:.2f}")
+from scipy.stats import chi2_contingency
+chi2, p, _, _ = chi2_contingency(pivot.values)
+
+print(f"Teste qui-quadrado posse x chutes: p-valor={p:.4f}, estatística={chi2:.2f}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC Na célula acima, foi realizada uma análise estatística para investigar a relação entre posse de bola, chutes a gol e gols marcados na tabela `fato_partidas`. O procedimento envolveu o cálculo dos coeficientes de correlação de Pearson entre as variáveis principais: posse de bola (`poss`), chutes a gol (`sot`) e gols a favor (`gf`). Essa abordagem permite quantificar o grau de associação linear entre os indicadores ofensivos de uma equipe.
+# MAGIC
+# MAGIC **Análise dos Resultados:**
+# MAGIC
+# MAGIC - Se o coeficiente de correlação entre posse de bola e chutes a gol for alto (próximo de 1), indica que equipes com maior posse tendem a finalizar mais vezes, sugerindo que controlar o jogo pode gerar mais oportunidades ofensivas.
+# MAGIC - Caso a correlação entre posse de bola e gols marcados também seja significativa, reforça a hipótese de que a posse contribui diretamente para o sucesso ofensivo.
+# MAGIC - Se os valores de correlação forem baixos ou próximos de zero, significa que a posse de bola não necessariamente se traduz em mais chutes a gol ou gols, indicando que outros fatores influenciam a efetividade ofensiva.
+# MAGIC
+# MAGIC **Aplicação à Hipótese:**
+# MAGIC
+# MAGIC Os resultados obtidos permitem avaliar a hipótese de que "a posse de bola se traduz em chutes a gol e, por consequência, gols". Se as correlações forem positivas e relevantes, a hipótese é parcialmente confirmada: equipes que mantêm mais a posse tendem a criar mais chances e converter em gols. Por outro lado, se as correlações forem fracas, sugere que apenas ter a posse não garante maior poder ofensivo, sendo necessário analisar outros aspectos táticos e de execução.
+# MAGIC
+# MAGIC Com base nos resultados observados, a hipótese é parcialmente validada. A correlação entre posse de bola e chutes a gol (0.4383) indica uma associação moderada, sugerindo que equipes com mais posse tendem a finalizar mais. No entanto, a correlação entre posse de bola e gols marcados (0.1157) é fraca, mostrando que maior posse não necessariamente resulta em mais gols. A correlação entre chutes e gols (0.2527) também é baixa, indicando que nem todo chute se converte em gol. O teste qui-quadrado entre posse e chutes apresenta p-valor significativo (0.0000), reforçando a existência de relação estatística entre essas variáveis. Portanto, a posse de bola contribui para gerar mais finalizações, mas não garante maior número de gols.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##5.3 Os atributos Posse de bola, chutes e chutes a gol são o suficiente pra prever a vitória de um clube?
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Os resultados estatísticos indicam que a hipótese de que "posse de bola, chutes e chutes a gol são suficientes para prever a vitória de um clube" **não é totalmente validada**. 
+# MAGIC
+# MAGIC A correlação entre posse de bola e chutes (0.4383) é moderada, sugerindo que equipes com mais posse tendem a finalizar mais. No entanto, a correlação entre posse de bola e gols (0.1157) e entre chutes e gols (0.2527) são baixas, mostrando que nem toda posse ou chute resulta em gol. O teste qui-quadrado entre posse e chutes apresenta p-valor significativo (0.0000), indicando relação estatística entre essas variáveis, mas não necessariamente com a vitória.
+# MAGIC
+# MAGIC Portanto, embora esses atributos contribuam para o desempenho ofensivo, **não são suficientes isoladamente para prever a vitória**. Outros fatores, como eficiência nas finalizações, defesa, contexto do jogo e estratégia, também influenciam o resultado final.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #6. Conclusão
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+# MAGIC O trabalho realizado consistiu em uma análise detalhada da qualidade dos dados esportivos presentes na tabela `fato_partidas`, seguida de uma investigação estatística para validar hipóteses relacionadas ao desempenho dos clubes. O processo envolveu as seguintes etapas principais:
+# MAGIC
+# MAGIC **1. Avaliação da Qualidade dos Dados**
+# MAGIC - Foram verificadas regras de completude (valores nulos), domínios válidos, consistência entre atributos e identificação de outliers nos principais campos estatísticos (posse de bola, chutes, chutes a gol, gols a favor, gols contra e resultado).
+# MAGIC - Utilizou-se SQL para consultas de validação e PySpark para análise de distribuição e outliers, garantindo que os dados fossem confiáveis para análises avançadas.
+# MAGIC
+# MAGIC **2. Estudo das Hipóteses**
+# MAGIC - Hipótese 1: Existe correlação entre maior posse de bola e vitória? Foi criada uma variável binária de vitória e calculado o coeficiente de correlação de Pearson entre posse de bola e vitória.
+# MAGIC - Hipótese 2: A posse de bola se traduz em chutes a gol e, por consequência, gols? Foram calculadas correlações entre posse de bola, chutes a gol e gols, além de testes estatísticos para avaliar associações.
+# MAGIC - Hipótese 3: Posse de bola, chutes e chutes a gol são suficientes para prever a vitória? A análise estatística mostrou que esses atributos contribuem, mas não são suficientes isoladamente para prever o resultado.
+# MAGIC
+# MAGIC **3. Bibliotecas e Tecnologias Utilizadas**
+# MAGIC - **Databricks**: Ambiente de análise e processamento de dados.
+# MAGIC - **PySpark**: Manipulação de dados, cálculo de estatísticas e análise de outliers.
+# MAGIC - **SQL**: Consultas para validação de regras de qualidade e consistência.
+# MAGIC - **Pandas** (quando necessário): Para manipulação tabular e cálculos estatísticos adicionais.
+# MAGIC
+# MAGIC **4. Próximos Passos e Possíveis Melhorias**
+# MAGIC - Realizar análises multivariadas e modelagem preditiva (ex: regressão logística ou árvores de decisão) para prever resultados de partidas.
+# MAGIC - Incluir variáveis contextuais (local do jogo, adversário, fase do campeonato) para enriquecer as análises.
+# MAGIC - Avaliar a eficiência ofensiva e defensiva com métricas avançadas (ex: expected goals).
+# MAGIC - Implementar rotinas automatizadas de monitoramento da qualidade dos dados.
+# MAGIC - Explorar visualizações interativas para facilitar a interpretação dos resultados.
+# MAGIC - Integrar feedback de especialistas esportivos para aprimorar regras de domínio e validação.
+# MAGIC
+# MAGIC O trabalho demonstrou a importância de uma abordagem estruturada para garantir a confiabilidade dos dados e validar hipóteses relevantes para o contexto esportivo, abrindo caminho para análises mais sofisticadas e aplicações preditivas.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #7. Autoavaliação
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Ao longo deste projeto, pude aplicar e consolidar conhecimentos em análise de dados esportivos, utilizando ferramentas como SQL, PySpark e Databricks. Realizei etapas fundamentais de validação da qualidade dos dados, análise estatística e teste de hipóteses, o que me permitiu compreender melhor o impacto dos principais indicadores no resultado das partidas.
+# MAGIC
+# MAGIC Acredito que fui capaz de estruturar o trabalho de forma lógica e clara, documentando cada etapa e justificando as escolhas metodológicas. Consegui interpretar os resultados de maneira crítica, reconhecendo limitações e sugerindo possíveis melhorias para análises futuras.
+# MAGIC
+# MAGIC Apesar dos avanços, reconheço que há espaço para aprofundar a modelagem preditiva e explorar variáveis contextuais que possam enriquecer as conclusões. No geral, considero que o projeto atingiu seus objetivos principais e contribuiu para meu desenvolvimento técnico e analítico.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC
 
 # COMMAND ----------
 
