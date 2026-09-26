@@ -2,6 +2,10 @@
 
 Autor: Guilherme Mendes Ribeiro
 
+Data: 26/09/2026
+
+Matrícula: 4052025000053
+
 Projeto acadêmico de construção de um pipeline de dados no Databricks para analisar a relação entre posse de bola, finalizações, gols e resultados de equipes da La Liga.
 
 ## Objetivo
