@@ -109,7 +109,7 @@ Exemplo de colunas removidas: identificadores técnicos, observações textuais,
 
 Assim, o conjunto final contém apenas as métricas e atributos relevantes para a análise esportiva proposta.
 
-#3. **Gold:** seleção das colunas relevantes e criação da tabela `mvp_gold.fato_partidas`.
+# 3. **Gold:** seleção das colunas relevantes e criação da tabela `mvp_gold.fato_partidas`.
 
 Criar a tabela fato `fato_partidas` com métricas e atributos necessários.
 
@@ -135,9 +135,9 @@ O esquema estrela foi utilizado na modelagem dos dados da camada Gold, com a cri
 
 A estrutura estrela facilita consultas analíticas, pois centraliza os fatos e permite junções simples com dimensões, otimizando o desempenho e a compreensão dos dados. Essa abordagem é recomendada em ambientes lakehouse como o Databricks, pois reduz a complexidade de joins e melhora a eficiência das análises.
 
-#4. **Qualidade e análise:** consultas SQL para nulos, regras de domínio e consistência; investigação de valores atípicos pelo intervalo interquartil; correlações em PySpark e teste qui-quadrado com SciPy para posse e chutes totais agrupados em faixas.
+# 4. **Qualidade e análise:** consultas SQL para nulos, regras de domínio e consistência; investigação de valores atípicos pelo intervalo interquartil; correlações em PySpark e teste qui-quadrado com SciPy para posse e chutes totais agrupados em faixas.
 
-##4.1 Avaliação da qualidade dos dados
+## 4.1 Avaliação da qualidade dos dados
 
 Avaliar a qualidade dos dados antes da análise é essencial para garantir que os resultados obtidos sejam confiáveis e úteis. Dados incompletos, incorretos ou inconsistentes podem levar a conclusões erradas e prejudicar decisões. Por isso, verificar a precisão, integridade e consistência dos dados é um passo fundamental para qualquer projeto de análise.
 
@@ -168,7 +168,7 @@ A consulta utiliza a função `SUM(CASE WHEN ... IS NULL THEN 1 ELSE 0 END)` par
 
 Foi possível observar que não há valores nulos nos atributos selecionados.
 
-###4.1.2 Domínios válidos
+### 4.1.2 Domínios válidos
 ![image_1790532018225.png](./MVP%20-%20Documentos/image_1790532018225.png "image_1790532018225.png")
 
 Na célula acima, foi realizada uma consulta SQL para verificar a validade dos valores presentes nos principais campos da tabela `fato_partidas`. Cada métrica avaliada corresponde a uma regra de domínio esperada para os dados esportivos:
@@ -180,7 +180,7 @@ Na célula acima, foi realizada uma consulta SQL para verificar a validade dos v
 
 O resultado da consulta apresenta, para cada regra, o número de registros inválidos encontrados. Se todos os valores retornados forem zero, significa que os dados estão dentro dos domínios esperados, indicando alta qualidade e consistência para análises futuras.
 
-###4.1.3 Consistência entre atributos
+### 4.1.3 Consistência entre atributos
 ![image_1790532074226.png](./MVP%20-%20Documentos/image_1790532074226.png "image_1790532074226.png")
 
 Na célula acima, foi realizada uma consulta SQL para verificar a consistência entre os atributos de gols a favor (`gf`), gols contra (`ga`) e o resultado da partida (`result`) na tabela `fato_partidas`. A consulta conta o número de registros em que há divergência lógica entre esses campos, ou seja:
@@ -191,7 +191,7 @@ Na célula acima, foi realizada uma consulta SQL para verificar a consistência 
 
 O resultado da consulta retorna a quantidade total de registros que apresentam essas inconsistências. Se o valor retornado for zero, significa que todos os registros estão logicamente corretos em relação ao placar e ao resultado informado, indicando alta qualidade e confiabilidade dos dados para análise.
 
-###4.1.4 Distribuição de Outliers
+### 4.1.4 Distribuição de Outliers
 ![image_1790532110755.png](./MVP%20-%20Documentos/image_1790532110755.png "image_1790532110755.png")
 
 Na célula acima, foi realizada uma análise de outliers para o campo de posse de bola (`poss`) na tabela `fato_partidas`. O processo envolveu dois passos principais:
@@ -227,7 +227,7 @@ Esse processo permite identificar possíveis erros de registro ou situações ex
 
 A análise de qualidade dos dados da tabela `fato_partidas` envolveu a verificação de regras de domínio, consistência entre atributos e identificação de outliers. Os resultados indicam que os principais campos apresentam valores dentro dos limites esperados, sem registros inválidos ou inconsistentes. A distribuição dos dados estatísticos está adequada, com poucos ou nenhum outlier detectado. Dessa forma, os dados demonstram alta qualidade, consistência e confiabilidade para análises futuras.
 
-#5. Análise das Hipóteses
+# 5. Análise das Hipóteses
 
 ##5.1 Existe uma correlação entre a maior posse de bola e a vitória em partidas?
 ![image_1790532264052.png](./MVP%20-%20Documentos/image_1790532264052.png "image_1790532264052.png")
@@ -241,7 +241,7 @@ O resultado obtido é o valor do coeficiente de correlação de Pearson, que var
 
 Por essa razão, podemos observar que a posse de bola, não neessáriamente leva um time à vitória.
 
-##5.2 A posse de bola se traduz em Chutes a gol e por consequência gols?
+## 5.2 A posse de bola se traduz em Chutes a gol e por consequência gols?
 ![image_1790532394915.png](./MVP%20-%20Documentos/image_1790532394915.png "image_1790532394915.png")
 
 Na célula acima, foi realizada uma análise estatística para investigar a relação entre posse de bola, chutes a gol e gols marcados na tabela `fato_partidas`. O procedimento envolveu o cálculo dos coeficientes de correlação de Pearson entre as variáveis principais: posse de bola (`poss`), chutes a gol (`sot`) e gols a favor (`gf`). Essa abordagem permite quantificar o grau de associação linear entre os indicadores ofensivos de uma equipe.
@@ -258,7 +258,7 @@ Os resultados obtidos permitem avaliar a hipótese de que "a posse de bola se tr
 
 Com base nos resultados observados, a hipótese é parcialmente validada. A correlação entre posse de bola e chutes a gol (0.4383) indica uma associação moderada, sugerindo que equipes com mais posse tendem a finalizar mais. No entanto, a correlação entre posse de bola e gols marcados (0.1157) é fraca, mostrando que maior posse não necessariamente resulta em mais gols. A correlação entre chutes e gols (0.2527) também é baixa, indicando que nem todo chute se converte em gol. O teste qui-quadrado entre posse e chutes apresenta p-valor significativo (0.0000), reforçando a existência de relação estatística entre essas variáveis. Portanto, a posse de bola contribui para gerar mais finalizações, mas não garante maior número de gols.
 
-##5.3 Os atributos Posse de bola, chutes e chutes a gol são o suficiente pra prever a vitória de um clube?
+## 5.3 Os atributos Posse de bola, chutes e chutes a gol são o suficiente pra prever a vitória de um clube?
 
 Os resultados estatísticos indicam que a hipótese de que "posse de bola, chutes e chutes a gol são suficientes para prever a vitória de um clube" **não é totalmente validada**. 
 
@@ -266,7 +266,7 @@ A correlação entre posse de bola e chutes (0.4383) é moderada, sugerindo que 
 
 Portanto, embora esses atributos contribuam para o desempenho ofensivo, **não são suficientes isoladamente para prever a vitória**. Outros fatores, como eficiência nas finalizações, defesa, contexto do jogo e estratégia, também influenciam o resultado final.
 
-#6. Conclusão
+# 6. Conclusão
 
 O trabalho realizado consistiu em uma análise detalhada da qualidade dos dados esportivos presentes na tabela `fato_partidas`, seguida de uma investigação estatística para validar hipóteses relacionadas ao desempenho dos clubes. O processo envolveu as seguintes etapas principais:
 
@@ -295,7 +295,7 @@ O trabalho realizado consistiu em uma análise detalhada da qualidade dos dados 
 
 O trabalho demonstrou a importância de uma abordagem estruturada para garantir a confiabilidade dos dados e validar hipóteses relevantes para o contexto esportivo, abrindo caminho para análises mais sofisticadas e aplicações preditivas.
 
-#7. Autoavaliação
+# 7. Autoavaliação
 
 Ao longo deste projeto, pude aplicar e consolidar conhecimentos em análise de dados esportivos, utilizando ferramentas como SQL, PySpark e Databricks. Realizei etapas fundamentais de validação da qualidade dos dados, análise estatística e teste de hipóteses, o que me permitiu compreender melhor o impacto dos principais indicadores no resultado das partidas.
 
