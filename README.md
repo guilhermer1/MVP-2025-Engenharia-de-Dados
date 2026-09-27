@@ -28,8 +28,8 @@ Entre os campos utilizados estão `date` (data), `season` (temporada), `team` (e
 
 # 1. **Ingestão e camada inicial:** leitura do CSV armazenado em um Databricks Volume com PySpark, ajuste dos nomes das colunas e gravação em Delta no caminho `dbfs:/Volumes/workspace/default/mvp/laliga/laliga_bronze`.
 
-![image_1790531295494.png](./image_1790531295494.png "image_1790531295494.png")
-![image_1790531314897.png](./image_1790531314897.png "image_1790531314897.png")
+![image_1790531295494.png](./MVP - Documentos/image_1790531295494.png "image_1790531295494.png")
+![image_1790531314897.png](./MVP - Documentos/image_1790531314897.png "image_1790531314897.png")
 
 ## Descrição Detalhada do Dataset LaLiga Matches (2019-2025)
 
