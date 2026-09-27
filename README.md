@@ -84,7 +84,7 @@ O dataset foi limpo e tipado para garantir qualidade e facilitar análises. As c
 
 * result → resultado (W, D, L)
 
-![image_1790531588789.png](./image_1790531588789.png "image_1790531588789.png")
+![image_1790531588789.png](./MVP%20-%20Documentos/image_1790531588789.png "image_1790531588789.png")
 
 Na célula anterior, foi realizada a primeira etapa de transformação dos dados brutos da La Liga (Silver Layer). As principais ações foram:
 
@@ -111,7 +111,7 @@ Assim, o conjunto final contém apenas as métricas e atributos relevantes para 
 
 Criar a tabela fato `fato_partidas` com métricas e atributos necessários.
 
-![image_1790531712809.png](./image_1790531712809.png "image_1790531712809.png")
+![image_1790531712809.png](./MVP%20-%20Documentos/image_1790531712809.png "image_1790531712809.png")
 
 Na célula acima, foi realizada a criação da tabela fato `fato_partidas` na camada Gold do projeto. O processo envolveu:
 
@@ -158,7 +158,7 @@ O projeto utiliza uma tabela fato na Gold. As dimensões citadas no notebook sã
 
 ### 4.1.1 Avaliação de Completude (valores nulos)
 
-![image_1790531862893.png](./image_1790531862893.png "image_1790531862893.png")
+![image_1790531862893.png](./MVP%20-%20Documentos/image_1790531862893.png "image_1790531862893.png")
 
 Na célula anterior, foi realizada uma consulta SQL para avaliar a completude dos dados na tabela fato `fato_partidas`, especificamente verificando a presença de valores nulos nos principais campos de análise: posse de bola (`poss`), chutes totais (`sh`), chutes a gol (`sot`), gols a favor (`gf`), gols contra (`ga`) e resultado da partida (`result`). 
 
@@ -167,7 +167,7 @@ A consulta utiliza a função `SUM(CASE WHEN ... IS NULL THEN 1 ELSE 0 END)` par
 Foi possível observar que não há valores nulos nos atributos selecionados.
 
 ###4.1.2 Domínios válidos
-![image_1790532018225.png](./image_1790532018225.png "image_1790532018225.png")
+![image_1790532018225.png](./MVP%20-%20Documentos/image_1790532018225.png "image_1790532018225.png")
 
 Na célula acima, foi realizada uma consulta SQL para verificar a validade dos valores presentes nos principais campos da tabela `fato_partidas`. Cada métrica avaliada corresponde a uma regra de domínio esperada para os dados esportivos:
 
@@ -179,7 +179,7 @@ Na célula acima, foi realizada uma consulta SQL para verificar a validade dos v
 O resultado da consulta apresenta, para cada regra, o número de registros inválidos encontrados. Se todos os valores retornados forem zero, significa que os dados estão dentro dos domínios esperados, indicando alta qualidade e consistência para análises futuras.
 
 ###4.1.3 Consistência entre atributos
-![image_1790532074226.png](./image_1790532074226.png "image_1790532074226.png")
+![image_1790532074226.png](./MVP%20-%20Documentos/image_1790532074226.png "image_1790532074226.png")
 
 Na célula acima, foi realizada uma consulta SQL para verificar a consistência entre os atributos de gols a favor (`gf`), gols contra (`ga`) e o resultado da partida (`result`) na tabela `fato_partidas`. A consulta conta o número de registros em que há divergência lógica entre esses campos, ou seja:
 
@@ -190,7 +190,7 @@ Na célula acima, foi realizada uma consulta SQL para verificar a consistência 
 O resultado da consulta retorna a quantidade total de registros que apresentam essas inconsistências. Se o valor retornado for zero, significa que todos os registros estão logicamente corretos em relação ao placar e ao resultado informado, indicando alta qualidade e confiabilidade dos dados para análise.
 
 ###4.1.4 Distribuição de Outliers
-![image_1790532110755.png](./image_1790532110755.png "image_1790532110755.png")
+![image_1790532110755.png](./MVP%20-%20Documentos/image_1790532110755.png "image_1790532110755.png")
 
 Na célula acima, foi realizada uma análise de outliers para o campo de posse de bola (`poss`) na tabela `fato_partidas`. O processo envolveu dois passos principais:
 
@@ -209,7 +209,7 @@ O resultado permite identificar se há partidas com valores de posse de bola for
 
 Através da avaliação podemos observar que não foram encontrados outliers.
 
-![image_1790532152887.png](./image_1790532152887.png "image_1790532152887.png")
+![image_1790532152887.png](./MVP%20-%20Documentos/image_1790532152887.png "image_1790532152887.png")
 
 Na célula acima, foi realizada uma análise de outliers para os principais atributos estatísticos da tabela `fato_partidas` utilizando PySpark. O procedimento seguiu os seguintes passos:
 
@@ -228,7 +228,7 @@ A análise de qualidade dos dados da tabela `fato_partidas` envolveu a verifica�
 #5. Análise das Hipóteses
 
 ##5.1 Existe uma correlação entre a maior posse de bola e a vitória em partidas?
-![image_1790532264052.png](./image_1790532264052.png "image_1790532264052.png")
+![image_1790532264052.png](./MVP%20-%20Documentos/image_1790532264052.png "image_1790532264052.png")
 
 Na célula acima realizamos duas operações principais:
 * 1. Cria uma nova coluna binária chamada "win" na tabela fato_partidas, onde o valor é 1 se o resultado da partida foi "WIN" (vitória) e 0 caso contrário.
@@ -240,7 +240,7 @@ O resultado obtido é o valor do coeficiente de correlação de Pearson, que var
 Por essa razão, podemos observar que a posse de bola, não neessáriamente leva um time à vitória.
 
 ##5.2 A posse de bola se traduz em Chutes a gol e por consequência gols?
-![image_1790532394915.png](./image_1790532394915.png "image_1790532394915.png")
+![image_1790532394915.png](./MVP%20-%20Documentos/image_1790532394915.png "image_1790532394915.png")
 
 Na célula acima, foi realizada uma análise estatística para investigar a relação entre posse de bola, chutes a gol e gols marcados na tabela `fato_partidas`. O procedimento envolveu o cálculo dos coeficientes de correlação de Pearson entre as variáveis principais: posse de bola (`poss`), chutes a gol (`sot`) e gols a favor (`gf`). Essa abordagem permite quantificar o grau de associação linear entre os indicadores ofensivos de uma equipe.
 
@@ -309,25 +309,24 @@ Apesar dos avanços, reconheço que há espaço para aprofundar a modelagem pred
 ├── pipeline_laliga_notebook.ipynb
 ├── La Liga - Pipeline/
 │   └── pipeline_laliga.py
-└── MVP - Documentos/
-    ├── Catalog_mvp_gold.jpg
-    └── Pastas_databricks.png
+└── MVP - Documentos
+
 ```
 ## Estrutura do MVP no Databricks
 
 ### Workspace + Git
 
-![image_1790532819270.png](./image_1790532819270.png "image_1790532819270.png")
+![image_1790532819270.png](./MVP%20-%20Documentos/image_1790532819270.png "image_1790532819270.png")
 
 ### Bronze e Silver Layer
 
-![image_1790532733002.png](./image_1790532733002.png "image_1790532733002.png")
+![image_1790532733002.png](./MVP%20-%20Documentos/image_1790532733002.png "image_1790532733002.png")
 
 ### Gold-Layer
 
 #### Tabela Fato_partidas
 
-![image_1790532901141.png](./image_1790532901141.png "image_1790532901141.png")
+![image_1790532901141.png](./MVP%20-%20Documentos/image_1790532901141.png "image_1790532901141.png")
 
 **Tecnologias usadas:** Databricks, Python, PySpark, Spark SQL, Delta Lake, Pandas e SciPy.
 
