@@ -10,6 +10,8 @@ Projeto acadêmico de construção de um pipeline de dados no Databricks para an
 
 ## Objetivo
 
+O objetivo é analisar resultados e performances dos times de 2019 a 2025 e verificar se há a possibilidade de prever resultados com base em algumas colunas que foram escolhidas, comparando os dados históricos de diversos times ao logo desses anos.
+
 O trabalho parte de três perguntas:
 
 1. Existe correlação entre maior posse de bola e vitória?
